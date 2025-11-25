@@ -87,22 +87,52 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('archives.assets.store', $archive) }}" enctype="multipart/form-data" class="space-y-4">
+                    <form method="POST" action="{{ route('archives.assets.store', $archive) }}" enctype="multipart/form-data" class="space-y-4" x-data="{ fileName: '', fileSize: '' }">
                         @csrf
 
-                        <div class="bg-white rounded-lg p-3 border-2 border-dashed border-gray-300 hover:border-indigo-400 transition-colors">
+                        <div class="bg-white rounded-lg p-3 border-2 border-dashed transition-colors" :class="fileName ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-indigo-400'">
                             <label for="file" class="block cursor-pointer">
                                 <div class="text-center py-3">
-                                    <svg class="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                    <svg x-show="!fileName" class="mx-auto h-8 w-8 text-gray-400 mb-2" stroke="currentColor" fill="none" viewBox="0 0 48 48">
                                         <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
-                                    <div>
+                                    <svg x-show="fileName" class="mx-auto h-8 w-8 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none;">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <div x-show="!fileName">
                                         <span class="text-indigo-600 font-semibold hover:text-indigo-500">Click to select a file</span>
                                         <span class="text-gray-600"> or drag and drop</span>
                                     </div>
-                                    <p class="text-xs text-gray-500 mt-1">JPEG, PNG, GIF, MP4, PDF, TXT up to 20MB</p>
+                                    <div x-show="fileName" style="display: none;">
+                                        <p class="text-green-700 font-semibold mb-1">File ready to upload</p>
+                                        <p class="text-sm text-gray-700 font-medium" x-text="fileName"></p>
+                                        <p class="text-xs text-gray-600 mt-1" x-text="fileSize"></p>
+                                        <button type="button" @click.prevent="fileName = ''; fileSize = ''; $refs.fileInput.value = ''" class="mt-2 text-xs text-indigo-600 hover:text-indigo-800 underline">
+                                            Choose different file
+                                        </button>
+                                    </div>
+                                    <p x-show="!fileName" class="text-xs text-gray-500 mt-1">JPEG, PNG, GIF, MP4, PDF, TXT up to 20MB</p>
                                 </div>
-                                <input type="file" name="file" id="file" required class="hidden">
+                                <input
+                                    type="file"
+                                    name="file"
+                                    id="file"
+                                    required
+                                    class="hidden"
+                                    x-ref="fileInput"
+                                    @change="
+                                        if ($event.target.files.length > 0) {
+                                            fileName = $event.target.files[0].name;
+                                            const bytes = $event.target.files[0].size;
+                                            const kb = (bytes / 1024).toFixed(1);
+                                            const mb = (bytes / (1024 * 1024)).toFixed(2);
+                                            fileSize = bytes > 1024 * 1024 ? mb + ' MB' : kb + ' KB';
+                                        } else {
+                                            fileName = '';
+                                            fileSize = '';
+                                        }
+                                    "
+                                >
                             </label>
                             @error('file')
                                 <p class="mt-2 text-sm text-red-600 text-center">{{ $message }}</p>
