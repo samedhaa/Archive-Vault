@@ -17,28 +17,25 @@ Route::get('/dashboard', function () {
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    // Profile management
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Archive items CRUD
-    Route::get('/archives', [ArchiveItemController::class, 'index'])->name('archives.index');
-    Route::get('/archives/create', [ArchiveItemController::class, 'create'])->name('archives.create');
-    Route::post('/archives', [ArchiveItemController::class, 'store'])->name('archives.store');
-    Route::get('/archives/{archive}', [ArchiveItemController::class, 'show'])->name('archives.show');
-    Route::get('/archives/{archive}/edit', [ArchiveItemController::class, 'edit'])->name('archives.edit');
-    Route::put('/archives/{archive}', [ArchiveItemController::class, 'update'])->name('archives.update');
-    Route::delete('/archives/{archive}', [ArchiveItemController::class, 'destroy'])->name('archives.destroy');
+    // Archive management (RESTful resource)
+    Route::resource('archives', ArchiveItemController::class)->parameters([
+        'archives' => 'archive'
+    ]);
 
-    // Assets (files) for an archive - with throttle on uploads
-    Route::post('/archives/{archive}/assets', [AssetController::class, 'store'])
+    // Asset management (nested resource)
+    Route::post('archives/{archive}/assets', [AssetController::class, 'store'])
         ->middleware('throttle:60,1')
         ->name('archives.assets.store');
 
-    Route::get('/assets/{asset}/download', [AssetController::class, 'download'])
+    Route::get('assets/{asset}/download', [AssetController::class, 'download'])
         ->name('assets.download');
 
-    Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])
+    Route::delete('assets/{asset}', [AssetController::class, 'destroy'])
         ->name('assets.destroy');
 });
 
