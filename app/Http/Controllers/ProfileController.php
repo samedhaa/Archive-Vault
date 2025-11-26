@@ -7,6 +7,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ProfileController extends Controller
@@ -47,6 +48,15 @@ class ProfileController extends Controller
         ]);
 
         $user = $request->user();
+
+        // Clean up all uploaded files before deletion
+        foreach ($user->archiveItems as $archive) {
+            foreach ($archive->assets as $asset) {
+                if ($asset->file_path && Storage::disk('public')->exists($asset->file_path)) {
+                    Storage::disk('public')->delete($asset->file_path);
+                }
+            }
+        }
 
         Auth::logout();
 
